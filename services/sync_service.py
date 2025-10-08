@@ -19,7 +19,7 @@ class SyncService:
                 settings.SYNC_PERIOD
             )
             
-            logger.info(f"Sync completed successfully. Updated {count} parts from {len(current_parts)} total parts")
+            logger.info(f"Success. Updated {count} parts from {len(current_parts)} total parts")
             return count
             
         except Exception as e:

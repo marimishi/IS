@@ -61,7 +61,7 @@ class DatabaseManager:
                     existing_part.spare_status = part_data['spareStatus']
                     existing_part.price = part_data['price']
                     existing_part.quantity = part_data['quantity']
-                    existing_part.updated_at = datetime.fromisoformat(part_data['updatedAt'].replace('Z', '+00:00'))
+                    existing_part.updated_at = part_data['updatedAt']
                     existing_part.is_active = True
                     existing_part.last_sync_at = datetime.utcnow()
                 else:
@@ -73,7 +73,7 @@ class DatabaseManager:
                         spare_status=part_data['spareStatus'],
                         price=part_data['price'],
                         quantity=part_data['quantity'],
-                        updated_at=datetime.fromisoformat(part_data['updatedAt'].replace('Z', '+00:00')),
+                        updated_at=part_data['updatedAt'],
                         sync_period=sync_period,
                         is_active=True,
                         last_sync_at=datetime.utcnow()
@@ -89,12 +89,10 @@ class DatabaseManager:
         finally:
             session.close()
     
-    def get_parts_for_report(self, sync_period: int = None):
+    def get_parts_for_report(self):
         session = self.get_session()
         try:
             query = session.query(SparePart).filter(SparePart.is_active == True)
-            if sync_period:
-                query = query.filter(SparePart.sync_period == sync_period)
             
             all_parts = query.all()
             
