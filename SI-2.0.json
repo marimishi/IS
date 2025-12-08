@@ -1,0 +1,511 @@
+{
+  "name": "SI-2.0",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4f20d264-e842-4adc-a9c8-30730340956a",
+              "name": "page",
+              "value": 0,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1680,
+        448
+      ],
+      "id": "12da95e9-bf30-4dd1-a758-f3f0e2e1d66a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1168,
+        256
+      ],
+      "id": "6b309998-6c30-49f0-8eca-c20f7ba65cc4",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "432d0f8c-f747-47fe-a0b7-26c7883c1861",
+              "leftValue": "={{ $json.max }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -736,
+        192
+      ],
+      "id": "f7108cac-2453-4601-86c3-67b34a6cb582",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2112,
+        272
+      ],
+      "id": "650c4300-af0b-4ee6-8548-e99e69fbe07b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst max = items.length - 1;\n\nconst page = items[items.length - 1].json.page;\n\nreturn [\n  {\n    json: { max, page },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -928,
+        192
+      ],
+      "id": "840f1bda-c5bc-4b9f-9cba-fbd90844cb3d",
+      "name": "Page",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "94311dfd-1efa-40a3-b4a5-6dada7711126",
+              "name": "page",
+              "value": "={{ $json.page + 1 }}\n",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -608,
+        -96
+      ],
+      "id": "476df4f1-8cad-4355-ba95-6b479943df5a",
+      "name": "Page Incrementor"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  spare_code,\n  spare_name,\n  spare_description,\n  spare_type,\n  spare_status,\n  price,\n  quantity,\n  updated_at\nFROM spare_parts\nWHERE sync_period = 2\nORDER BY\n  CAST(SUBSTRING(spare_code FROM '[0-9]+') AS INTEGER);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -512,
+        368
+      ],
+      "id": "300ddac1-56c4-49c6-9aca-35ff7c28311c",
+      "name": "SELECT",
+      "credentials": {
+        "postgres": {
+          "id": "Vo8LadIRr01jrhNm",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "spare_parts",
+          "mode": "list",
+          "cachedResultName": "spare_parts"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "quantity": "={{ $json.quantity }}",
+            "spare_code": "={{ $json.spareCode }}",
+            "spare_name": "={{ $json.spareName }}",
+            "spare_description": "={{ $json.spareDescription }}",
+            "spare_type": "={{ $json.spareType }}",
+            "spare_status": "={{ $json.spareStatus }}",
+            "price": "={{ $json.price }}",
+            "updated_at": "={{ $json.updatedAt }}",
+            "sync_period": 2,
+            "last_sync_at": "={{ $now }}",
+            "created_at": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "spare_code"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "spare_code",
+              "displayName": "spare_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "spare_name",
+              "displayName": "spare_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "spare_description",
+              "displayName": "spare_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "spare_type",
+              "displayName": "spare_type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "spare_status",
+              "displayName": "spare_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "is_active",
+              "displayName": "is_active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "sync_period",
+              "displayName": "sync_period",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_sync_at",
+              "displayName": "last_sync_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1536,
+        -160
+      ],
+      "id": "fc0571d2-4aa3-447c-adec-04e95ec24c04",
+      "name": "UPSERT",
+      "credentials": {
+        "postgres": {
+          "id": "Vo8LadIRr01jrhNm",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst rows = items.map(i => {\n  const code = i.json.spare_code;\n  const name = i.json.spare_name;\n  const desc = i.json.spare_description;\n  const type = i.json.spare_type;\n  const status = i.json.spare_status;\n\n  const price = Number(i.json.price).toString();\n  const quantity = Number(i.json.quantity).toString();\n  const updatedAt = i.json.updated_at;\n\n  return [\n    code,\n    name,\n    desc,\n    type,\n    status,\n    price,\n    quantity,\n    updatedAt\n  ].join(\";\")\n});\n\nconst csv = rows.join(\"\\n\") + \"\\n\";\nconst rowCount = rows.length;\n\nreturn [{ \n  json: { \n    csv,\n    rowCount \n  } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        448
+      ],
+      "id": "9d27a782-00dc-48d7-ab99-a0635bebb0f3",
+      "name": "To csv"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://212.237.219.35:8080/students/14/report/csv",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/csv; charset=utf-8",
+        "body": "={{ $json.csv }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        112,
+        544
+      ],
+      "id": "1b1233bb-44c8-4de7-8d4d-4bd846160a90",
+      "name": "HTTP POST"
+    },
+    {
+      "parameters": {
+        "url": "=http://212.237.219.35:8080/students/14/cms/spares?page={{$json.page}}&size=10\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1680,
+        144
+      ],
+      "id": "691262da-ad69-4876-878f-035342e6f46d",
+      "name": "HTTP GET"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Page Incrementor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SELECT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP GET",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Page": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Page Incrementor": {
+      "main": [
+        [
+          {
+            "node": "HTTP GET",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "SELECT": {
+      "main": [
+        [
+          {
+            "node": "To csv",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To csv": {
+      "main": [
+        [
+          {
+            "node": "HTTP POST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP GET": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "UPSERT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2897cf18-d843-4dc0-84cf-0c66a47ff430",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f87382886a5d843c66093e8118775bd21ce456b80ee5ff4a248b76685a90346f"
+  },
+  "id": "X8wmJ2S7IBT5RPMD",
+  "tags": []
+}
