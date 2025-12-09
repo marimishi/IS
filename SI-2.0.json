@@ -3,73 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "4f20d264-e842-4adc-a9c8-30730340956a",
-              "name": "page",
-              "value": 0,
-              "type": "number"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1680,
-        448
-      ],
-      "id": "12da95e9-bf30-4dd1-a758-f3f0e2e1d66a",
-      "name": "Edit Fields"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        -1168,
-        256
-      ],
-      "id": "6b309998-6c30-49f0-8eca-c20f7ba65cc4",
-      "name": "Merge"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "432d0f8c-f747-47fe-a0b7-26c7883c1861",
-              "leftValue": "={{ $json.max }}",
-              "rightValue": 10,
-              "operator": {
-                "type": "number",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -736,
-        192
-      ],
-      "id": "f7108cac-2453-4601-86c3-67b34a6cb582",
-      "name": "If"
-    },
-    {
-      "parameters": {
         "rule": {
           "interval": [
             {
@@ -81,70 +14,38 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        -2112,
-        272
+        -1392,
+        208
       ],
-      "id": "650c4300-af0b-4ee6-8548-e99e69fbe07b",
+      "id": "bd0298da-84e7-4f41-bfea-6ccb8f6e5647",
       "name": "Schedule Trigger"
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst max = items.length - 1;\n\nconst page = items[items.length - 1].json.page;\n\nreturn [\n  {\n    json: { max, page },\n  },\n];\n"
+        "jsCode": "const results = [];\nlet page = 0;\nconst size = 10;\n\nwhile (true) {\n  const url = `http://212.237.219.35:8080/students/14/cms/spares?page=${page}&size=${size}`;\n\n  try {\n    const response = await this.helpers.httpRequest({\n      method: \"GET\",\n      url,\n      json: true,\n      timeout: 30000\n    });\n\n    if (!response || response.length === 0) {\n      break;\n    }\n\n\n    for (const item of response) {\n      results.push({ json: item });\n    }\n\n    page += 1;\n    if (page > 1000) {\n      break;\n    }\n    \n  } catch (error) {\n    throw error; \n  }\n}\n\nreturn results;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -928,
-        192
+        -1120,
+        208
       ],
-      "id": "840f1bda-c5bc-4b9f-9cba-fbd90844cb3d",
-      "name": "Page",
+      "id": "259dc3fa-45ef-4788-952e-f910e8c1e7f1",
+      "name": "Fetch With Pagination"
+    },
+    {
+      "parameters": {
+        "jsCode": "$input.all().length;\n\nconst items = $input.all();\nlet processedCount = 0;\nlet errorCount = 0;\n\nconst validatedItems = items.map(item => {\n  try {\n    const json = item.json;\n\n    const spareCode = json.spareCode || json.spare_code || json.code || '';\n    const spareName = json.spareName || json.spare_name || json.name || '';\n    const spareDescription = json.spareDescription || json.spare_description || json.description || '';\n    const spareType = json.spareType || json.spare_type || json.type || '';\n    const spareStatus = json.spareStatus || json.spare_status || json.status || '';\n    const price = json.price || 0;\n    const quantity = json.quantity || 0;\n    const updatedAt = json.updatedAt || json.updated_at || new Date().toISOString();\n\n    if (!spareCode || !spareName) {\n      errorCount++;\n      return null;\n    }\n\n    const processed = {\n      spare_code: String(spareCode),\n      spare_name: String(spareName),\n      spare_description: String(spareDescription),\n      spare_type: String(spareType),\n      spare_status: String(spareStatus),\n      price: Number(price),\n      quantity: Number(quantity),\n      updated_at: updatedAt,\n      last_sync_at: new Date().toISOString(),\n      created_at: new Date().toISOString()\n    };\n\n    processedCount++;\n    return processed;\n  } catch (error) {\n    errorCount++;\n    return null;\n  }\n}).filter(i => i !== null);\n\nreturn validatedItems.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        208
+      ],
+      "id": "465a63ea-515e-4e30-8c97-44a0e0077cc4",
+      "name": "Process & Validate Data",
       "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "94311dfd-1efa-40a3-b4a5-6dada7711126",
-              "name": "page",
-              "value": "={{ $json.page + 1 }}\n",
-              "type": "number"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -608,
-        -96
-      ],
-      "id": "476df4f1-8cad-4355-ba95-6b479943df5a",
-      "name": "Page Incrementor"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "SELECT\n  spare_code,\n  spare_name,\n  spare_description,\n  spare_type,\n  spare_status,\n  price,\n  quantity,\n  updated_at\nFROM spare_parts\nWHERE sync_period = 2\nORDER BY\n  CAST(SUBSTRING(spare_code FROM '[0-9]+') AS INTEGER);\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -512,
-        368
-      ],
-      "id": "300ddac1-56c4-49c6-9aca-35ff7c28311c",
-      "name": "SELECT",
-      "credentials": {
-        "postgres": {
-          "id": "Vo8LadIRr01jrhNm",
-          "name": "Postgres account"
-        }
-      }
     },
     {
       "parameters": {
@@ -157,23 +58,21 @@
         "table": {
           "__rl": true,
           "value": "spare_parts",
-          "mode": "list",
-          "cachedResultName": "spare_parts"
+          "mode": "list"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "quantity": "={{ $json.quantity }}",
-            "spare_code": "={{ $json.spareCode }}",
-            "spare_name": "={{ $json.spareName }}",
-            "spare_description": "={{ $json.spareDescription }}",
-            "spare_type": "={{ $json.spareType }}",
-            "spare_status": "={{ $json.spareStatus }}",
+            "spare_code": "={{ $json.spare_code }}",
+            "spare_name": "={{ $json.spare_name }}",
+            "spare_description": "={{ $json.spare_description }}",
+            "spare_type": "={{ $json.spare_type }}",
+            "spare_status": "={{ $json.spare_status }}",
             "price": "={{ $json.price }}",
-            "updated_at": "={{ $json.updatedAt }}",
-            "sync_period": 2,
-            "last_sync_at": "={{ $now }}",
-            "created_at": "={{ $now }}"
+            "quantity": "={{ $json.quantity }}",
+            "updated_at": "={{ $json.updated_at }}",
+            "last_sync_at": "={{ $json.last_sync_at }}",
+            "created_at": "={{ $json.created_at }}"
           },
           "matchingColumns": [
             "spare_code"
@@ -196,8 +95,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "spare_name",
@@ -275,11 +173,12 @@
             {
               "id": "sync_period",
               "displayName": "sync_period",
-              "required": true,
+              "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "number",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": true
             },
             {
               "id": "last_sync_at",
@@ -308,11 +207,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -1536,
-        -160
+        -480,
+        208
       ],
-      "id": "fc0571d2-4aa3-447c-adec-04e95ec24c04",
-      "name": "UPSERT",
+      "id": "61f2bed7-861b-4195-bd40-380169a2ae1e",
+      "name": "Upsert to DB",
       "credentials": {
         "postgres": {
           "id": "Vo8LadIRr01jrhNm",
@@ -322,16 +221,50 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\n\nconst rows = items.map(i => {\n  const code = i.json.spare_code;\n  const name = i.json.spare_name;\n  const desc = i.json.spare_description;\n  const type = i.json.spare_type;\n  const status = i.json.spare_status;\n\n  const price = Number(i.json.price).toString();\n  const quantity = Number(i.json.quantity).toString();\n  const updatedAt = i.json.updated_at;\n\n  return [\n    code,\n    name,\n    desc,\n    type,\n    status,\n    price,\n    quantity,\n    updatedAt\n  ].join(\";\")\n});\n\nconst csv = rows.join(\"\\n\") + \"\\n\";\nconst rowCount = rows.length;\n\nreturn [{ \n  json: { \n    csv,\n    rowCount \n  } \n}];"
+        "jsCode": "const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();\nreturn [{ json: { fiveMinutesAgo } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -272,
-        448
+        -192,
+        208
       ],
-      "id": "9d27a782-00dc-48d7-ab99-a0635bebb0f3",
-      "name": "To csv"
+      "id": "453beb9a-de28-4bab-9f81-5dcd0aa4f606",
+      "name": "Code Time"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT spare_code, spare_name, spare_description, spare_type, spare_status, price, quantity, updated_at\nFROM spare_parts\nWHERE last_sync_at >= '{{$json.fiveMinutesAgo}}'\nORDER BY spare_code;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        80,
+        208
+      ],
+      "id": "2cfd5bac-797e-422c-a9b6-d2869f824b15",
+      "name": "Execute SQL",
+      "credentials": {
+        "postgres": {
+          "id": "Vo8LadIRr01jrhNm",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst rows = items.map(i => [\n  i.json.spare_code,\n  i.json.spare_name,\n  i.json.spare_description,\n  i.json.spare_type,\n  i.json.spare_status,\n  Number(i.json.price).toString(),\n  Number(i.json.quantity).toString(),\n  i.json.updated_at\n].join(\";\"));\n\nreturn [{ json: { csv: rows.join(\"\\n\") + \"\\n\" } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        208
+      ],
+      "id": "c36b68fe-e474-4b00-9409-d21f565a3559",
+      "name": "Build CSV"
     },
     {
       "parameters": {
@@ -346,150 +279,86 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        112,
-        544
+        608,
+        208
       ],
-      "id": "1b1233bb-44c8-4de7-8d4d-4bd846160a90",
-      "name": "HTTP POST"
-    },
-    {
-      "parameters": {
-        "url": "=http://212.237.219.35:8080/students/14/cms/spares?page={{$json.page}}&size=10\n",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "json"
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        -1680,
-        144
-      ],
-      "id": "691262da-ad69-4876-878f-035342e6f46d",
-      "name": "HTTP GET"
+      "id": "e155ec7a-81af-47fe-818b-c64c1b6f4d67",
+      "name": "Send CSV"
     }
   ],
   "pinData": {},
   "connections": {
-    "Edit Fields": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge": {
-      "main": [
-        [
-          {
-            "node": "Page",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If": {
-      "main": [
-        [
-          {
-            "node": "Page Incrementor",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "SELECT",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Schedule Trigger": {
       "main": [
         [
           {
-            "node": "HTTP GET",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Edit Fields",
+            "node": "Fetch With Pagination",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Page": {
+    "Fetch With Pagination": {
       "main": [
         [
           {
-            "node": "If",
+            "node": "Process & Validate Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Page Incrementor": {
+    "Process & Validate Data": {
       "main": [
         [
           {
-            "node": "HTTP GET",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "SELECT": {
-      "main": [
-        [
-          {
-            "node": "To csv",
+            "node": "Upsert to DB",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "To csv": {
+    "Upsert to DB": {
       "main": [
         [
           {
-            "node": "HTTP POST",
+            "node": "Code Time",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP GET": {
+    "Code Time": {
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "Execute SQL",
             "type": "main",
             "index": 0
-          },
+          }
+        ]
+      ]
+    },
+    "Execute SQL": {
+      "main": [
+        [
           {
-            "node": "UPSERT",
+            "node": "Build CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build CSV": {
+      "main": [
+        [
+          {
+            "node": "Send CSV",
             "type": "main",
             "index": 0
           }
@@ -499,9 +368,12 @@
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "timezone": "Asia/Yekaterinburg",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
   },
-  "versionId": "2897cf18-d843-4dc0-84cf-0c66a47ff430",
+  "versionId": "7032f020-4f5e-4ba6-98a5-acbb018a8310",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f87382886a5d843c66093e8118775bd21ce456b80ee5ff4a248b76685a90346f"
