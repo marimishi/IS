@@ -14,38 +14,59 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        -1392,
-        208
+        -2608,
+        -48
       ],
-      "id": "bd0298da-84e7-4f41-bfea-6ccb8f6e5647",
+      "id": "e8aefcd3-a5fc-4437-b41d-4f127ec11f88",
       "name": "Schedule Trigger"
     },
     {
       "parameters": {
-        "jsCode": "const results = [];\nlet page = 0;\nconst size = 10;\n\nwhile (true) {\n  const url = `http://212.237.219.35:8080/students/14/cms/spares?page=${page}&size=${size}`;\n\n  try {\n    const response = await this.helpers.httpRequest({\n      method: \"GET\",\n      url,\n      json: true,\n      timeout: 30000\n    });\n\n    if (!response || response.length === 0) {\n      break;\n    }\n\n\n    for (const item of response) {\n      results.push({ json: item });\n    }\n\n    page += 1;\n    if (page > 1000) {\n      break;\n    }\n    \n  } catch (error) {\n    throw error; \n  }\n}\n\nreturn results;"
+        "jsCode": "const results = [];\nlet page = 0;\nconst size = 100;\n\nwhile (true) {\n  const url = `http://212.237.219.35:8080/students/14/cms/spares?page=${page}&size=${size}`;\n\n  try {\n    const response = await this.helpers.httpRequest({\n      method: \"GET\",\n      url,\n      json: true,\n      timeout: 30000\n    });\n\n    if (!response || response.length === 0) {\n      break;\n    }\n\n    for (const item of response) {\n      results.push({ json: item });\n    }\n\n    page += 1;\n    if (page > 100) {\n      break;\n    }\n    \n  } catch (error) {\n    throw error; \n  }\n}\n\nconsole.log(`Получено ${results.length} записей из CMS`);\nreturn results;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1120,
-        208
+        -2160,
+        -48
       ],
-      "id": "259dc3fa-45ef-4788-952e-f910e8c1e7f1",
-      "name": "Fetch With Pagination"
+      "id": "20989888-db9e-4401-a21a-c796f80ecb40",
+      "name": "Fetch All From CMS"
     },
     {
       "parameters": {
-        "jsCode": "$input.all().length;\n\nconst items = $input.all();\nlet processedCount = 0;\nlet errorCount = 0;\n\nconst validatedItems = items.map(item => {\n  try {\n    const json = item.json;\n\n    const spareCode = json.spareCode || json.spare_code || json.code || '';\n    const spareName = json.spareName || json.spare_name || json.name || '';\n    const spareDescription = json.spareDescription || json.spare_description || json.description || '';\n    const spareType = json.spareType || json.spare_type || json.type || '';\n    const spareStatus = json.spareStatus || json.spare_status || json.status || '';\n    const price = json.price || 0;\n    const quantity = json.quantity || 0;\n    const updatedAt = json.updatedAt || json.updated_at || new Date().toISOString();\n\n    if (!spareCode || !spareName) {\n      errorCount++;\n      return null;\n    }\n\n    const processed = {\n      spare_code: String(spareCode),\n      spare_name: String(spareName),\n      spare_description: String(spareDescription),\n      spare_type: String(spareType),\n      spare_status: String(spareStatus),\n      price: Number(price),\n      quantity: Number(quantity),\n      updated_at: updatedAt,\n      last_sync_at: new Date().toISOString(),\n      created_at: new Date().toISOString()\n    };\n\n    processedCount++;\n    return processed;\n  } catch (error) {\n    errorCount++;\n    return null;\n  }\n}).filter(i => i !== null);\n\nreturn validatedItems.map(item => ({ json: item }));"
+        "jsCode": "const items = $input.all();\nconst processedItems = [];\n\nfor (const item of items) {\n  try {\n    const json = item.json;\n\n    const spareCode = json.spareCode || json.spare_code || json.code || '';\n    const spareName = json.spareName || json.spare_name || json.name || '';\n    const spareDescription = json.spareDescription || json.spare_description || json.description || '';\n    const spareType = json.spareType || json.spare_type || json.type || '';\n    const spareStatus = json.spareStatus || json.spare_status || json.status || '';\n    const price = json.price || 0;\n    const quantity = json.quantity || 0;\n    const updatedAt = json.updatedAt || json.updated_at || new Date().toISOString();\n\n    if (!spareCode || !spareName) {\n      continue;\n    }\n\n    processedItems.push({\n      spare_code: String(spareCode),\n      spare_name: String(spareName),\n      spare_description: String(spareDescription || ''),\n      spare_type: String(spareType || ''),\n      spare_status: String(spareStatus || ''),\n      price: Number(price),\n      quantity: Number(quantity),\n      updated_at: updatedAt,\n      is_active: true,\n      last_sync_at: new Date().toISOString()\n    });\n  } catch (error) {\n  }\n}\n\nreturn processedItems.map(item => ({ json: item }));"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -800,
-        208
+        -1920,
+        -48
       ],
-      "id": "465a63ea-515e-4e30-8c97-44a0e0077cc4",
-      "name": "Process & Validate Data",
+      "id": "f9247f91-68f2-42c3-8b17-bc2b023208d0",
+      "name": "Process CMS Data",
       "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE spare_parts \nSET is_active = false, \n    last_sync_at = NOW() \nWHERE is_active = true;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2384,
+        -48
+      ],
+      "id": "e4f1ef65-fd8a-4ee5-90ab-954c4cfbb6da",
+      "name": "Mark All Inactive",
+      "credentials": {
+        "postgres": {
+          "id": "Vo8LadIRr01jrhNm",
+          "name": "Postgres account"
+        }
+      }
     },
     {
       "parameters": {
@@ -71,8 +92,8 @@
             "price": "={{ $json.price }}",
             "quantity": "={{ $json.quantity }}",
             "updated_at": "={{ $json.updated_at }}",
-            "last_sync_at": "={{ $json.last_sync_at }}",
-            "created_at": "={{ $json.created_at }}"
+            "is_active": "={{ $json.is_active }}",
+            "last_sync_at": "={{ $json.last_sync_at }}"
           },
           "matchingColumns": [
             "spare_code"
@@ -163,27 +184,16 @@
             {
               "id": "is_active",
               "displayName": "is_active",
-              "required": false,
+              "required": true,
               "defaultMatch": false,
               "display": true,
               "type": "boolean",
-              "canBeUsedToMatch": false,
-              "removed": true
-            },
-            {
-              "id": "sync_period",
-              "displayName": "sync_period",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": true
+              "canBeUsedToMatch": false
             },
             {
               "id": "last_sync_at",
               "displayName": "last_sync_at",
-              "required": false,
+              "required": true,
               "defaultMatch": false,
               "display": true,
               "type": "dateTime",
@@ -196,7 +206,8 @@
               "defaultMatch": false,
               "display": true,
               "type": "dateTime",
-              "canBeUsedToMatch": false
+              "canBeUsedToMatch": false,
+              "removed": true
             }
           ],
           "attemptToConvertTypes": false,
@@ -207,11 +218,11 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -480,
-        208
+        -1696,
+        -48
       ],
-      "id": "61f2bed7-861b-4195-bd40-380169a2ae1e",
-      "name": "Upsert to DB",
+      "id": "226dc235-6c95-4bdd-99fa-ce865130f99f",
+      "name": "Upsert Active Parts",
       "credentials": {
         "postgres": {
           "id": "Vo8LadIRr01jrhNm",
@@ -221,31 +232,18 @@
     },
     {
       "parameters": {
-        "jsCode": "const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();\nreturn [{ json: { fiveMinutesAgo } }];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -192,
-        208
-      ],
-      "id": "453beb9a-de28-4bab-9f81-5dcd0aa4f606",
-      "name": "Code Time"
-    },
-    {
-      "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT spare_code, spare_name, spare_description, spare_type, spare_status, price, quantity, updated_at\nFROM spare_parts\nWHERE last_sync_at >= '{{$json.fiveMinutesAgo}}'\nORDER BY spare_code;",
+        "query": "SELECT \n    spare_code,\n    spare_name,\n    spare_description,\n    spare_type,\n    spare_status,\n    price,\n    quantity,\n    updated_at\nFROM spare_parts \nWHERE is_active = true\nORDER BY spare_code;",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        80,
-        208
+        -2336,
+        192
       ],
-      "id": "2cfd5bac-797e-422c-a9b6-d2869f824b15",
-      "name": "Execute SQL",
+      "id": "c0aa5f0e-5362-4025-8006-b78fcfa9d8f7",
+      "name": "Get Active Parts For CSV",
       "credentials": {
         "postgres": {
           "id": "Vo8LadIRr01jrhNm",
@@ -255,16 +253,16 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\n\nconst rows = items.map(i => [\n  i.json.spare_code,\n  i.json.spare_name,\n  i.json.spare_description,\n  i.json.spare_type,\n  i.json.spare_status,\n  Number(i.json.price).toString(),\n  Number(i.json.quantity).toString(),\n  i.json.updated_at\n].join(\";\"));\n\nreturn [{ json: { csv: rows.join(\"\\n\") + \"\\n\" } }];"
+        "jsCode": "const items = $input.all();\n\nif (items.length === 0) {\n  return [{ json: { csv: '' } }];\n}\n\nconst rows = items.map(i => {\n  const json = i.json;\n  return [\n    json.spare_code || '',\n    json.spare_name || '',\n    json.spare_description || '',\n    json.spare_type || '',\n    json.spare_status || '',\n    Number(json.price || 0).toString(),\n    Number(json.quantity || 0).toString(),\n    json.updated_at || new Date().toISOString()\n  ].map(field => {\n    const strField = String(field);\n    if (strField.includes(';') || strField.includes('\"') || strField.includes('\\n')) {\n      return `\"${strField.replace(/\"/g, '\"\"')}\"`;\n    }\n    return strField;\n  }).join(\";\");\n});\n\nconst csvContent = rows.join(\"\\n\") + \"\\n\";\n\nreturn [{ json: { csv: csvContent } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        336,
-        208
+        -2064,
+        192
       ],
-      "id": "c36b68fe-e474-4b00-9409-d21f565a3559",
-      "name": "Build CSV"
+      "id": "3b0cd1cf-b0af-4c26-b52a-2b4d748e71d8",
+      "name": "Build CSV With Header"
     },
     {
       "parameters": {
@@ -279,11 +277,50 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        608,
-        208
+        -1824,
+        192
       ],
-      "id": "e155ec7a-81af-47fe-818b-c64c1b6f4d67",
-      "name": "Send CSV"
+      "id": "465eab3a-dd4b-46f9-a7d3-ecc5d266e878",
+      "name": "Send CSV to Report API"
+    },
+    {
+      "parameters": {
+        "content": "### Поток данных №1\n\nинтеграционное приложение, вызывает CMS по API и получает набор данных (внимание, может быть пагинация). Далее интеграционное приложение сравнивает полученный набор, с данными в БД для хранения исторических данных. Записи в БД добавляются и обновляются.\n",
+        "height": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2912,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "9fb9a7c7-706a-4973-8dcb-deae5e59d37e",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "### Поток данных №2\n\nинтеграционное приложение, на основе данных в БД хранения исторических данных, формирует файл CSV. Данный файл отправляется в Report API. Особое внимание требуется уделить формату csv файла. Файл должен быть в кодировке UTF-8, а разделяющий символ для csv - \";\"",
+        "height": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2912,
+        144
+      ],
+      "typeVersion": 1,
+      "id": "b6e069e5-2859-4b17-8f76-0c847864ae57",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2592,
+        192
+      ],
+      "id": "6b9638ad-86a7-43f3-a320-a9a9a9712c49",
+      "name": "When clicking ‘Execute workflow’"
     }
   ],
   "pinData": {},
@@ -292,73 +329,78 @@
       "main": [
         [
           {
-            "node": "Fetch With Pagination",
+            "node": "Mark All Inactive",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Fetch With Pagination": {
+    "Fetch All From CMS": {
       "main": [
         [
           {
-            "node": "Process & Validate Data",
+            "node": "Process CMS Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process & Validate Data": {
+    "Process CMS Data": {
       "main": [
         [
           {
-            "node": "Upsert to DB",
+            "node": "Upsert Active Parts",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Upsert to DB": {
+    "Mark All Inactive": {
       "main": [
         [
           {
-            "node": "Code Time",
+            "node": "Fetch All From CMS",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code Time": {
+    "Upsert Active Parts": {
+      "main": [
+        []
+      ]
+    },
+    "Get Active Parts For CSV": {
       "main": [
         [
           {
-            "node": "Execute SQL",
+            "node": "Build CSV With Header",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Execute SQL": {
+    "Build CSV With Header": {
       "main": [
         [
           {
-            "node": "Build CSV",
+            "node": "Send CSV to Report API",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Build CSV": {
+    "When clicking ‘Execute workflow’": {
       "main": [
         [
           {
-            "node": "Send CSV",
+            "node": "Get Active Parts For CSV",
             "type": "main",
             "index": 0
           }
@@ -373,7 +415,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "7032f020-4f5e-4ba6-98a5-acbb018a8310",
+  "versionId": "c3697ead-fc0e-4430-b7d1-7eab7a9807ba",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f87382886a5d843c66093e8118775bd21ce456b80ee5ff4a248b76685a90346f"
