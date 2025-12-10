@@ -3,6 +3,42 @@
   "nodes": [
     {
       "parameters": {
+        "url": "=http://212.237.219.35:8080/students/14/cms/spares",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "page",
+              "value": "={{ $pageCount }}"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "page",
+                    "value": "={{ $pageCount }}"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1312,
+        416
+      ],
+      "id": "6b033371-2bf2-4c0d-aee0-754e9eda5930",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
         "rule": {
           "interval": [
             {
@@ -14,24 +50,11 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        -2608,
-        -48
+        864,
+        416
       ],
-      "id": "e8aefcd3-a5fc-4437-b41d-4f127ec11f88",
+      "id": "f1592769-669e-4575-9bf0-0f1f638fe148",
       "name": "Schedule Trigger"
-    },
-    {
-      "parameters": {
-        "jsCode": "const results = [];\nlet page = 0;\nconst size = 100;\n\nwhile (true) {\n  const url = `http://212.237.219.35:8080/students/14/cms/spares?page=${page}&size=${size}`;\n\n  try {\n    const response = await this.helpers.httpRequest({\n      method: \"GET\",\n      url,\n      json: true,\n      timeout: 30000\n    });\n\n    if (!response || response.length === 0) {\n      break;\n    }\n\n    for (const item of response) {\n      results.push({ json: item });\n    }\n\n    page += 1;\n    if (page > 100) {\n      break;\n    }\n    \n  } catch (error) {\n    throw error; \n  }\n}\n\nconsole.log(`Получено ${results.length} записей из CMS`);\nreturn results;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -2160,
-        -48
-      ],
-      "id": "20989888-db9e-4401-a21a-c796f80ecb40",
-      "name": "Fetch All From CMS"
     },
     {
       "parameters": {
@@ -40,10 +63,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1920,
-        -48
+        1552,
+        416
       ],
-      "id": "f9247f91-68f2-42c3-8b17-bc2b023208d0",
+      "id": "b0bd862b-5650-4404-a6c6-1ec7b5c8e70b",
       "name": "Process CMS Data",
       "alwaysOutputData": true
     },
@@ -56,10 +79,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -2384,
-        -48
+        1088,
+        416
       ],
-      "id": "e4f1ef65-fd8a-4ee5-90ab-954c4cfbb6da",
+      "id": "a61d73e2-a795-4e1f-8a95-6a12fe03e693",
       "name": "Mark All Inactive",
       "credentials": {
         "postgres": {
@@ -218,10 +241,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -1696,
-        -48
+        1776,
+        416
       ],
-      "id": "226dc235-6c95-4bdd-99fa-ce865130f99f",
+      "id": "b2b7f0b2-a784-46aa-94f5-5fb0feb11d6c",
       "name": "Upsert Active Parts",
       "credentials": {
         "postgres": {
@@ -239,10 +262,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -2336,
-        192
+        1136,
+        656
       ],
-      "id": "c0aa5f0e-5362-4025-8006-b78fcfa9d8f7",
+      "id": "1e2b391f-9e1c-489c-aa85-2be51b034e3b",
       "name": "Get Active Parts For CSV",
       "credentials": {
         "postgres": {
@@ -258,10 +281,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2064,
-        192
+        1408,
+        656
       ],
-      "id": "3b0cd1cf-b0af-4c26-b52a-2b4d748e71d8",
+      "id": "0b334aaa-c928-4915-8da6-3ef88f237600",
       "name": "Build CSV With Header"
     },
     {
@@ -277,10 +300,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -1824,
-        192
+        1648,
+        656
       ],
-      "id": "465eab3a-dd4b-46f9-a7d3-ecc5d266e878",
+      "id": "b654c335-2054-48ac-8260-5eaa6c471846",
       "name": "Send CSV to Report API"
     },
     {
@@ -290,11 +313,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2912,
-        -208
+        560,
+        256
       ],
       "typeVersion": 1,
-      "id": "9fb9a7c7-706a-4973-8dcb-deae5e59d37e",
+      "id": "73c92bb4-ad37-4223-a703-bf5b3ada0812",
       "name": "Sticky Note2"
     },
     {
@@ -304,11 +327,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2912,
-        144
+        560,
+        608
       ],
       "typeVersion": 1,
-      "id": "b6e069e5-2859-4b17-8f76-0c847864ae57",
+      "id": "0e65d6bc-bc60-4582-a480-fa4fc63a41e1",
       "name": "Sticky Note3"
     },
     {
@@ -316,31 +339,31 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -2592,
-        192
+        912,
+        656
       ],
-      "id": "6b9638ad-86a7-43f3-a320-a9a9a9712c49",
+      "id": "6965c56f-102e-4de7-a067-8257e6fb6682",
       "name": "When clicking ‘Execute workflow’"
     }
   ],
   "pinData": {},
   "connections": {
-    "Schedule Trigger": {
+    "HTTP Request": {
       "main": [
         [
           {
-            "node": "Mark All Inactive",
+            "node": "Process CMS Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Fetch All From CMS": {
+    "Schedule Trigger": {
       "main": [
         [
           {
-            "node": "Process CMS Data",
+            "node": "Mark All Inactive",
             "type": "main",
             "index": 0
           }
@@ -362,16 +385,11 @@
       "main": [
         [
           {
-            "node": "Fetch All From CMS",
+            "node": "HTTP Request",
             "type": "main",
             "index": 0
           }
         ]
-      ]
-    },
-    "Upsert Active Parts": {
-      "main": [
-        []
       ]
     },
     "Get Active Parts For CSV": {
@@ -415,7 +433,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "c3697ead-fc0e-4430-b7d1-7eab7a9807ba",
+  "versionId": "264651aa-707e-4ca9-9bd4-85dfb7c89062",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f87382886a5d843c66093e8118775bd21ce456b80ee5ff4a248b76685a90346f"
