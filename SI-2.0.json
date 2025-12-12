@@ -31,10 +31,10 @@
       "name": "HTTP Request",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        1312,
-        416
+        144,
+        -48
       ],
-      "id": "6b033371-2bf2-4c0d-aee0-754e9eda5930",
+      "id": "c4eae570-a674-4038-bbf3-eb76181bc100",
       "typeVersion": 4.3
     },
     {
@@ -50,10 +50,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        864,
-        416
+        -304,
+        -48
       ],
-      "id": "f1592769-669e-4575-9bf0-0f1f638fe148",
+      "id": "a9955a2a-e08b-4a0b-b3fe-4ef9a19d9178",
       "name": "Schedule Trigger"
     },
     {
@@ -63,10 +63,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1552,
-        416
+        384,
+        -48
       ],
-      "id": "b0bd862b-5650-4404-a6c6-1ec7b5c8e70b",
+      "id": "4f899639-991a-4ba1-9445-7460dbd0b67f",
       "name": "Process CMS Data",
       "alwaysOutputData": true
     },
@@ -79,10 +79,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1088,
-        416
+        -80,
+        -48
       ],
-      "id": "a61d73e2-a795-4e1f-8a95-6a12fe03e693",
+      "id": "1c961556-0c6f-47bc-995d-922babc4f678",
       "name": "Mark All Inactive",
       "credentials": {
         "postgres": {
@@ -241,10 +241,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1776,
-        416
+        608,
+        -48
       ],
-      "id": "b2b7f0b2-a784-46aa-94f5-5fb0feb11d6c",
+      "id": "7d9fa91e-fee4-4c07-9467-88271e7b01f7",
       "name": "Upsert Active Parts",
       "credentials": {
         "postgres": {
@@ -256,16 +256,16 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT \n    spare_code,\n    spare_name,\n    spare_description,\n    spare_type,\n    spare_status,\n    price,\n    quantity,\n    updated_at\nFROM spare_parts \nWHERE is_active = true\nORDER BY spare_code;",
+        "query": "SELECT \n    spare_code,\n    spare_name,\n    spare_description,\n    spare_type,\n    spare_status,\n    price,\n    quantity,\n    updated_at\nFROM spare_parts \nORDER BY spare_code;",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1136,
-        656
+        -32,
+        208
       ],
-      "id": "1e2b391f-9e1c-489c-aa85-2be51b034e3b",
+      "id": "4288a092-cbcd-499a-ba62-9b1c42057931",
       "name": "Get Active Parts For CSV",
       "credentials": {
         "postgres": {
@@ -281,10 +281,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1408,
-        656
+        240,
+        208
       ],
-      "id": "0b334aaa-c928-4915-8da6-3ef88f237600",
+      "id": "50189731-b5e8-4ae9-82fc-1373790863ab",
       "name": "Build CSV With Header"
     },
     {
@@ -300,10 +300,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1648,
-        656
+        480,
+        208
       ],
-      "id": "b654c335-2054-48ac-8260-5eaa6c471846",
+      "id": "c15b528c-ad32-4aa2-a2cf-5b5effa929cf",
       "name": "Send CSV to Report API"
     },
     {
@@ -313,11 +313,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        560,
-        256
+        -608,
+        -208
       ],
       "typeVersion": 1,
-      "id": "73c92bb4-ad37-4223-a703-bf5b3ada0812",
+      "id": "a4c62862-4e4f-47eb-867d-be39d99d9773",
       "name": "Sticky Note2"
     },
     {
@@ -327,11 +327,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        560,
-        608
+        -608,
+        160
       ],
       "typeVersion": 1,
-      "id": "0e65d6bc-bc60-4582-a480-fa4fc63a41e1",
+      "id": "918c1c08-8c9c-4ad4-be84-bf0529f464cf",
       "name": "Sticky Note3"
     },
     {
@@ -339,10 +339,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        912,
-        656
+        -256,
+        208
       ],
-      "id": "6965c56f-102e-4de7-a067-8257e6fb6682",
+      "id": "3960a0dc-822f-4878-93d8-68bdcaa0f592",
       "name": "When clicking ‘Execute workflow’"
     }
   ],
@@ -433,7 +433,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "264651aa-707e-4ca9-9bd4-85dfb7c89062",
+  "versionId": "a526fa3f-2e10-4404-a860-73de4126c6ff",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f87382886a5d843c66093e8118775bd21ce456b80ee5ff4a248b76685a90346f"
